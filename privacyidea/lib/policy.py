@@ -478,7 +478,7 @@ class PolicyClass(object):
     @log_with(log)
     def get_action_values(self, action, scope=SCOPE.AUTHZ, realm=None,
                           resolver=None, user=None, client=None, unique=False,
-                          allow_white_space_in_action=False):
+                          adminrealm=None, allow_white_space_in_action=False):
         """
         Get the defined action values for a certain action like
             scope: authorization
@@ -503,7 +503,7 @@ class PolicyClass(object):
         policies = self.get_policies(scope=scope,
                                      action=action, active=True,
                                      realm=realm, resolver=resolver, user=user,
-                                     client=client)
+                                     adminrealm=adminrealm, client=client)
         for pol in policies:
             action_dict = pol.get("action", {})
             action_value = action_dict.get(action, "")
@@ -1063,6 +1063,19 @@ def get_static_policy_definitions(scope=None):
                                                      "machine resolvers."),
                                            'group': "system",
                                            'mainmenu': [MAIN_MENU.CONFIG]},
+            ACTION.OTPPINMAXLEN: {'type': 'int',
+                                  'value': range(0, 32),
+                                  "desc": _("Set the maximum allowed length "
+                                            "of the OTP PIN.")},
+            ACTION.OTPPINMINLEN: {'type': 'int',
+                                  'value': range(0, 32),
+                                  "desc": _("Set the minimum required length "
+                                            "of the OTP PIN.")},
+            ACTION.OTPPINCONTENTS: {'type': 'str',
+                                    "desc": _("Specifiy the required "
+                                              "contents of the OTP PIN. "
+                                              "(c)haracters, (n)umeric, "
+                                              "(s)pecial, (o)thers. [+/-]!")},
             ACTION.AUDIT: {'type': 'bool',
                            "desc": _("Admin is allowed to view the Audit log."),
                            "group": "system",
