@@ -98,7 +98,24 @@ myApp.directive('assignUser', function($http, userUrl, AuthFactory, instanceUrl)
             console.log("Entering assignUser directive");
             console.log(scope.realms);
             console.log(scope.newUserObject);
+
+            // Toggle enable/disable loadUsers calls
+            scope.toggleLoadUsers = function($toggle) {
+                var $viewValue = scope.newUserObject.user;
+                scope.newUserObject.toggle = $toggle;
+                // update field value with a placeholder to trigger typeahead
+                if (scope.newUserObject.toggle
+                        && $viewValue.charAt($viewValue.length - 1) != "*") {
+                    var ctrl = element.find('input').controller('ngModel');
+                    ctrl.$setViewValue($viewValue + "*");
+                }
+            };
+
             scope.loadUsers = function($viewValue) {
+            if (!$viewValue || $viewValue == "*" || !scope.newUserObject.toggle) {
+                // only use existing result if any
+                return scope.newUserObject.loadedUsers;
+            }
             var auth_token = AuthFactory.getAuthToken();
             return $http({
                 method: 'GET',
@@ -106,13 +123,14 @@ myApp.directive('assignUser', function($http, userUrl, AuthFactory, instanceUrl)
                     "&realm=" + scope.newUserObject.realm,
                 headers: {'PI-Authorization': auth_token}
             }).then(function ($response) {
-                return $response.data.result.value.map(function (item) {
+                scope.newUserObject.loadedUsers = $response.data.result.value.map(function (item) {
                     scope.newUserObject.email = item.email;
                     scope.newUserObject.mobile = item.mobile;
                     scope.newUserObject.phone = item.phone;
                     return "[" + item.userid + "] " + item.username +
                         " (" + item.givenname + " " + item.surname + ")";
                 });
+                return scope.newUserObject.loadedUsers;
             });
             };
         }
