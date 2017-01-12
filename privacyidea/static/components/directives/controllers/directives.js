@@ -151,7 +151,23 @@ myApp.directive('assignToken', function($http, tokenUrl,
         },
         templateUrl: instanceUrl + "/static/components/directives/views/directive.assigntoken.html",
         link: function (scope, element, attr) {
+            // Toggle enable/disable loadSerials calls
+            scope.toggleLoadSerials = function($toggle) {
+                var $viewValue = scope.newTokenObject.serial;
+                scope.newTokenObject.toggle = $toggle;
+                // update field value with a placeholder to trigger typeahead
+                if (scope.newTokenObject.toggle
+                        && $viewValue.charAt($viewValue.length - 1) != "*") {
+                    var ctrl = element.find('input').controller('ngModel');
+                    ctrl.$setViewValue($viewValue + "*");
+                }
+            };
+
             scope.loadSerials = function($viewValue) {
+            if (!$viewValue || $viewValue == "*" || !scope.newTokenObject.toggle) {
+                // only use existing result if any
+                return scope.newTokenObject.loadedSerials;
+            }
             var auth_token = AuthFactory.getAuthToken();
             return $http({
                 method: 'GET',
@@ -160,9 +176,10 @@ myApp.directive('assignToken', function($http, tokenUrl,
                 params: {assigned: "False",
                 serial: "*" + $viewValue + "*"}
             }).then(function ($response) {
-                return $response.data.result.value.tokens.map(function (item) {
+                scope.newTokenObject.loadedSerials =  $response.data.result.value.tokens.map(function (item) {
                     return item.serial + " (" + item.tokentype + ")";
                 });
+                return scope.newTokenObject.loadedSerials;
             });
             };
         }
