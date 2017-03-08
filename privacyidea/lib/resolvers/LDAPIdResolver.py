@@ -651,7 +651,7 @@ class IdResolver (UserIdResolver):
         for uri in urilist.split(","):
             uri = uri.strip()
             host, port, ssl = cls.split_uri(uri)
-            server = ldap3.Server(host, port=port,
+            server = ldap3.Server(host,port=port,get_info=ldap3.NONE,
                                   use_ssl=ssl,
                                   connect_timeout=float(timeout))
             server_pool.add(server)
