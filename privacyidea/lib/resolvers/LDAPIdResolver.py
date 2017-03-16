@@ -662,7 +662,7 @@ class IdResolver (UserIdResolver):
         :return: Server Pool
         :rtype: LDAP3 Server Pool Instance
         """
-        get_info = get_info or ldap3.SCHEMA
+        get_info = get_info or ldap3.NONE
         server_pool = ldap3.ServerPool(None, ldap3.ROUND_ROBIN,
                                        active=SERVERPOOL_ROUNDS,
                                        exhaust=SERVERPOOL_SKIP)
