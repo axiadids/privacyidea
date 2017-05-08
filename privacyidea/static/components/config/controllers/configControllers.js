@@ -902,7 +902,7 @@ myApp.controller("LdapResolverController", function ($scope, ConfigFactory, $sta
         if (quick) {
             params["SIZELIMIT"] = 1;
         }
-        ConfigFactory.testResolver($scope.params, function (data) {
+        ConfigFactory.testResolver(params, function (data) {
             if (data.result.value === true) {
                 inform.add(data.detail.description,
                     {type: "success", ttl: 10000});
