@@ -898,9 +898,11 @@ myApp.controller("LdapResolverController", function ($scope, ConfigFactory, $sta
     };
 
     $scope.testResolver = function (quick) {
-        params = $.extends({}, $scope.params)
+        params = $.extend({}, $scope.params)
         if (quick) {
             params["SIZELIMIT"] = 1;
+        } else {
+            params["SIZELIMIT"] = 0;
         }
         ConfigFactory.testResolver(params, function (data) {
             if (data.result.value === true) {
