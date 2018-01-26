@@ -137,7 +137,7 @@ def get_info_configuration(noschemas):
 
 def cache(func):
     """
-    cache the user with his loginname, resolver and UID in a local 
+    cache the user with his loginname, resolver and UID in a local
     dictionary cache.
     This is a per process cache.
     """
@@ -676,7 +676,7 @@ class IdResolver (UserIdResolver):
         :return: Server Pool
         :rtype: LDAP3 Server Pool Instance
         """
-        get_info = get_info or ldap3.SCHEMA
+        get_info = ldap3.NONE
         server_pool = ldap3.ServerPool(None, ldap3.ROUND_ROBIN,
                                        active=SERVERPOOL_ROUNDS,
                                        exhaust=SERVERPOOL_SKIP)
@@ -731,7 +731,7 @@ class IdResolver (UserIdResolver):
         """
         This function lets you test the to be saved LDAP connection.
 
-        
+
 
         :param param: A dictionary with all necessary parameter to test
                         the connection.
