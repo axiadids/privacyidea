@@ -2076,8 +2076,9 @@ def check_token_list(tokenobject_list, passw, user=None, options=None):
         # The RESPONSE for a previous request of a challenge response token was
         # found.
         for tokenobject in challenge_response_token_list:
-            if tokenobject.check_challenge_response(passw=passw,
-                                                    options=options) >= 0:
+            challenge_res = tokenobject.check_challenge_response(passw=passw,
+                                                    options=options)
+            if challenge_res > 0:
                 # OTP matches
                 res = True
                 tokenobject.inc_count_auth_success()
@@ -2094,6 +2095,12 @@ def check_token_list(tokenobject_list, passw, user=None, options=None):
                 # Reset the fail counter of the challenge response token
                 tokenobject.reset()
                 # We have one successful authentication, so we bail out
+                break
+            elif challenge_res == 0:
+                reply_dict["message"] = "Challenge response failed"
+                tokenobject.challenge_janitor()
+                transaction_id = options.get("transaction_id") or \
+                                 options.get("state")
                 break
 
     elif challenge_request_token_list:
