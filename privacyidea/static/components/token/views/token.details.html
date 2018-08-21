@@ -61,15 +61,11 @@
             <td>{{ token.rollout_state }}</td>
             <td></td>
         </tr>
-        <tr token-data-edit text="{{'Maxfail' | translate }}"
-            button-text="{{ 'Set max fail'|translate}}"
-            token-data="{{ token.maxfail }}"
-            token-key="max_failcount"
-            token-locked="{{ token.locked }}"
-            input-pattern="[0-9]*"
-            callback-cancel="get()"
-            callback="set(key, value)"
-            logged-in-user="loggedInUser"></tr>
+        <tr>
+            <td translate>Max fail</td>
+            <td>{{ token.maxfail }}</td>
+            <td></td>
+        </tr>
         <tr>
             <td translate>Fail counter</td>
             <td><span class="label"
@@ -98,26 +94,16 @@
             <td>{{ token.count }}</td>
             <td></td>
         </tr>
-        <tr ng-hide="token.tokentype == 'spass'"
-            token-data-edit text="{{ 'Count Window'|translate }}"
-            button-text="{{ 'Set count window'|translate }}"
-            token-data="{{ token.count_window }}"
-            token-key="count_window"
-            token-locked="{{ token.locked }}"
-            input-pattern="[0-9]*"
-            callback-cancel="get()"
-            callback="set(key, value)"
-            logged-in-user="loggedInUser"></tr>
-        <tr ng-hide="token.tokentype == 'spass'"
-            token-data-edit text="{{ 'Sync Window'|translate }}"
-            button-text="{{ 'Set sync window'|translate }}"
-            token-data="{{ token.sync_window }}"
-            token-key="sync_window"
-            token-locked="{{ token.locked }}"
-            input-pattern="[0-9]*"
-            callback-cancel="get()"
-            callback="set(key, value)"
-            logged-in-user="loggedInUser"></tr>
+        <tr ng-hide="token.tokentype == 'spass'" >
+            <td translate>Count Window</td>
+            <td>{{ token.count_window }}</td>
+            <td></td>
+        </tr>
+        <tr ng-hide="token.tokentype == 'spass'" >
+            <td translate>Sync Window</td>
+            <td>{{ token.sync_window }}</td>
+            <td></td>
+        </tr>
         <!-- If setData is called within the directive tokenDataEdit,
         the function set in the parent scope is called -->
         <tr token-data-edit text="{{ 'Description'|translate }}"
