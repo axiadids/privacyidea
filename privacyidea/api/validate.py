@@ -95,7 +95,7 @@ from privacyidea.api.recover import recover_blueprint
 from privacyidea.lib.utils import get_client_ip
 from privacyidea.lib.event import event
 from privacyidea.lib.subscriptions import CheckSubscription
-from privacyidea.api.auth import admin_required
+from privacyidea.api.auth import validate_role_required
 from privacyidea.lib.policy import ACTION
 from privacyidea.lib.token import get_tokens
 
@@ -406,9 +406,9 @@ def samlcheck():
 
 
 @validate_blueprint.route('/triggerchallenge', methods=['POST', 'GET'])
-@admin_required
+@validate_role_required
+@prepolicy(mangle, request=request)
 @check_user_or_serial_in_request(request)
-@prepolicy(check_base_action, request, action=ACTION.TRIGGERCHALLENGE)
 @event("validate_triggerchallenge", request, g)
 def trigger_challenge():
     """
@@ -485,23 +485,30 @@ def trigger_challenge():
     options = {"g": g,
                "clientip": g.client_ip,
                "user": user}
+    # Add all params to the options
+    for key, value in request.all_data.items():
+            if value and key not in ["g", "clientip"]:
+                options[key] = value
 
     token_objs = get_tokens(serial=serial, user=user)
     for token_obj in token_objs:
         if "challenge" in token_obj.mode:
-            # If this is a challenge response token, we create a challenge
-            success, return_message, transactionid, attributes = \
-                token_obj.create_challenge(options=options)
-            if attributes:
-                details["attributes"] = attributes
-            if success:
-                result_obj += 1
-                details.get("transaction_ids").append(transactionid)
-                # This will write only the serial of the token that was processed last to the audit log
-                g.audit_object.log({
-                    "serial": token_obj.token.serial,
-                })
-            details.get("messages").append(return_message)
+            try:
+                # If this is a challenge response token, we create a challenge
+                success, return_message, transactionid, attributes = \
+                    token_obj.create_challenge(options=options)
+                if attributes:
+                    details["attributes"] = attributes
+                if success:
+                    result_obj += 1
+                    details.get("transaction_ids").append(transactionid)
+                    # This will write only the serial of the token that was processed last to the audit log
+                    g.audit_object.log({
+                        "serial": token_obj.token.serial,
+                    })
+                details.get("messages").append(return_message)
+            except Exception as exx:
+                log.info(exx)
 
     g.audit_object.log({
         "user": user.login,
@@ -512,4 +519,3 @@ def trigger_challenge():
     })
 
     return send_result(result_obj, details=details)
-
