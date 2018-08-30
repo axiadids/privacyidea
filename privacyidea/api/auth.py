@@ -374,3 +374,23 @@ def get_rights():
 
     g.audit_object.log({"success": True})
     return send_result(enroll_types)
+
+
+@jwtauth.route('/userrights', methods=['GET', 'POST'])
+@admin_required
+def get_user_rights():
+    """
+    This returns the rights of the requested user.
+
+    :reqheader Authorization: The authorization token acquired by /auth request
+    """
+    username = request.all_data.get("username")
+    realm = request.all_data.get("realm")
+    if realm:
+        username = username + "@" + realm
+    loginname, realm = split_user(username)
+    realm = realm or get_default_realm()
+    role = ROLE.USER
+    rights = g.policy_object.ui_get_rights(role, realm, username, g.client_ip)
+    g.audit_object.log({"success": True})
+    return send_result(rights)
