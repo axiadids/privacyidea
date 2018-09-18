@@ -120,12 +120,12 @@ def parse_registration_data(reg_data):
     start_time = time.strptime(not_before, "%Y%m%d%H%M%SZ")
     end_time = time.strptime(not_after, "%Y%m%d%H%M%SZ")
     # check the validity period of the certificate
-    if start_time > time.localtime() or \
-                    end_time < time.localtime():  #pragma no cover
-        log.error("The certificate is not valid. {0!s} -> {1!s}".format(not_before,
-                                                              not_after))
-        raise Exception("The time of the attestation certificate is not "
-                        "valid.")
+    #if start_time > time.localtime() or \
+    #                end_time < time.localtime():  #pragma no cover
+    #    log.error("The certificate is not valid. {0!s} -> {1!s}".format(not_before,
+    #                                                          not_after))
+    #    raise Exception("The time of the attestation certificate is not "
+    #                    "valid.")
 
     # Get the subject as description
     subj_x509name = attestation_cert.get_subject()
