@@ -291,22 +291,22 @@ def check_otp_pin(request=None, action=None):
         chars = "[a-zA-Z]"  # c
         digits = "[0-9]"    # n
         special = "[.:,;_<>+*!/()=?$§%&#~\^-]"  # s
-        no_others = False
-        grouping = False
-
-        if pol_contents[0] == "-":
-            no_others = True
-            pol_contents = pol_contents[1:]
-        elif pol_contents[0] == "+":
-            grouping = True
-            pol_contents = pol_contents[1:]
-        #  TODO implement grouping and substraction
+        no_others = pol_contents[0].startswith("-")
+        grouping = pol_contents[0].startswith("+")
+        #  TODO implement grouping
         if "c" in pol_contents[0] and not re.search(chars, pin):
             raise PolicyError("Missing character in PIN: {0!s}".format(chars))
         if "n" in pol_contents[0] and not re.search(digits, pin):
             raise PolicyError("Missing character in PIN: {0!s}".format(digits))
         if "s" in pol_contents[0] and not re.search(special, pin):
             raise PolicyError("Missing character in PIN: {0!s}".format(special))
+        if no_others:
+            if not "c" in pol_contents[0] and re.search(chars, pin):
+                raise PolicyError("PIN does not allow: {0!s}".format(chars))
+            if not "n" in pol_contents[0] and re.search(digits, pin):
+                raise PolicyError("PIN does not allow: {0!s}".format(digits))
+            if not "s" in pol_contents[0] and re.search(special, pin):
+                raise PolicyError("PIN does not allow: {0!s}".format(special))
 
     return True
 
