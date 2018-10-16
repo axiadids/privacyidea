@@ -239,6 +239,7 @@ class ACTION(object):
     OTPPINMAXLEN = 'otp_pin_maxlength'
     OTPPINMINLEN = 'otp_pin_minlength'
     OTPPINCONTENTS = 'otp_pin_contents'
+    OTPPINDIGITDELTA = 'otp_pin_digit_delta'
     PASSNOTOKEN = "passOnNoToken"
     PASSNOUSER = "passOnNoUser"
     PASSTHRU = "passthru"
@@ -1219,6 +1220,9 @@ def get_static_policy_definitions(scope=None):
                                               "(c)haracters, (n)umeric, "
                                               "(s)pecial, (o)thers. [+/-]!"),
                                     'group': GROUP.PIN},
+            ACTION.OTPPINDIGITDELTA: {'type': 'bool',
+                                      "desc": _("Digit-PIN must have different deltas."),
+                                      'group': GROUP.PIN},
             ACTION.AUDIT: {'type': 'bool',
                            "desc": _("Admin is allowed to view the Audit log."),
                            "group": GROUP.SYSTEM,
@@ -1380,7 +1384,9 @@ def get_static_policy_definitions(scope=None):
                                               "(c)haracters, (n)umeric, "
                                               "(s)pecial, (o)thers. [+/-]!"),
                                     'group': GROUP.PIN},
-
+            ACTION.OTPPINDIGITDELTA: {'type': 'bool',
+                                      "desc": _("Digit-PIN must have different deltas."),
+                                      'group': GROUP.PIN},
             ACTION.AUDIT: {
                 'type': 'bool',
                 'desc': _('Allow the user to view his own token history.'),
