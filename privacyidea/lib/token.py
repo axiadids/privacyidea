@@ -2358,6 +2358,12 @@ def get_dynamic_policy_definitions(scope=None):
                           "(s)pecial, (o)thers. [+/-]!").format(ttype.upper()),
                 'group': GROUP.PIN
             }
+            pol[pin_scope]['{0!s}_otp_pin_digit_delta'.format(ttype.lower())] = {
+                'type': 'bool',
+                "desc": _("Digit-PIN must have different deltas for {0!s}"
+                          " token.").format(ttype.upper()),
+                'group': GROUP.PIN
+            }
 
     # return sub section, if scope is defined
     # make sure that scope is in the policy key
