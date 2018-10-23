@@ -38,6 +38,7 @@ from flask import (Blueprint,
 from .lib.utils import (getParam,
                         optional,
                         required,
+                        send_sensitive_result,
                         send_result)
 from ..lib.log import log_with
 from ..lib.resolver import (get_resolver_list,
@@ -79,7 +80,7 @@ def get_resolvers():
         editable = False
     res = get_resolver_list(filter_resolver_type=typ, editable=editable)
     g.audit_object.log({"success": True})
-    return send_result(res)
+    return send_sensitive_result(res)
 
 
 @resolver_blueprint.route('/<resolver>', methods=['POST'])
@@ -173,7 +174,7 @@ def get_resolver(resolver=None):
     g.audit_object.log({"success": True,
                         "info": resolver})
 
-    return send_result(res)
+    return send_sensitive_result(res)
 
 @resolver_blueprint.route('/test', methods=["POST"])
 @log_with(log)

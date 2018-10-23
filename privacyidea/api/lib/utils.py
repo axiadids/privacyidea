@@ -27,6 +27,7 @@ from ...lib.error import (ParameterError,
                           AuthError, ERROR)
 from ...lib.log import log_with
 from privacyidea.lib import _
+from copy import deepcopy
 import time
 import threading
 import pkg_resources
@@ -119,6 +120,28 @@ def send_result(obj, rid=1, details=None):
     res = {"jsonrpc": "2.0",
            "result": {"status": True,
                       "value": obj},
+           "version": get_version(),
+           "versionnumber": get_version_number(),
+           "id": rid,
+           "time": time.time()}
+
+    if details is not None and len(details) > 0:
+        details["threadid"] = threading.current_thread().ident
+        res["detail"] = details
+
+    return jsonify(res)
+
+
+def send_sensitive_result(obj, rid=1, details=None):
+    my_obj = deepcopy(obj)
+    for i in my_obj.keys():
+        data = my_obj[i].get('data', None)
+        if data:
+            data.pop('BINDPW', None)
+            data.pop('Password', None)
+    res = {"jsonrpc": "2.0",
+           "result": {"status": True,
+                      "value": my_obj},
            "version": get_version(),
            "versionnumber": get_version_number(),
            "id": rid,
