@@ -253,8 +253,11 @@ def get_auth_token():
                                 "administrator": username})
 
     if not admin_auth and not user_auth:
+        message = "Wrong credentials"
+        if details and details.has_key("message") and details["message"] == "Challenge response failed":
+            message = details["message"]
         raise AuthError("Authentication failure",
-                        "Wrong credentials", status=401,
+                        message, status=401,
                         details=details or {})
     else:
         g.audit_object.log({"success": True})
