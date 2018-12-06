@@ -95,7 +95,8 @@ def check_webui_user(user_obj,
                      password,
                      options=None,
                      superuser_realms=None,
-                     check_otp=False):
+                     check_otp=False,
+                     passthru=None):
     """
     This function is used to authenticate the user at the web ui.
     It checks against the userstore or against OTP/privacyidea (check_otp).
@@ -126,6 +127,9 @@ def check_webui_user(user_obj,
         # check if the given password matches an OTP token
         check, details = check_user_pass(user_obj, password, options=options)
         if check:
+            user_auth = True
+        elif passthru and "no tokens assigned" in details.get("message", "") and \
+                        user_obj.check_password(password):
             user_auth = True
     else:
         # check the password of the user against the userstore
