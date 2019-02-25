@@ -311,7 +311,7 @@ angular.module("privacyideaApp")
             $scope.do_login_stuff(data);
             PollingAuthFactory.stop();
         }).error(function (error) {
-            if ($scope.pollingTimeout > 0 && error.result.error.message !== "Challenge response failed") {
+            if ($scope.pollingTimeout > 0 && error.result.error.message.indexOf("Challenge response failed") == -1) {
                 $scope.pollingTimeout--;
             } else {
                 PollingAuthFactory.stop();
