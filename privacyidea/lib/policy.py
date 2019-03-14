@@ -732,6 +732,7 @@ class PolicyClass(object):
         rights = []
         userrealm = None
         adminrealm = None
+        resolver = User(username, realm=realm).resolver
         logged_in_user = {"username": username,
                           "realm": realm}
         if scope == SCOPE.ADMIN:
@@ -743,6 +744,7 @@ class PolicyClass(object):
         pols = self.get_policies(scope=scope,
                                  adminrealm=adminrealm,
                                  realm=userrealm,
+                                 resolver=resolver,
                                  user=username, active=True,
                                  client=client)
         for pol in pols:
