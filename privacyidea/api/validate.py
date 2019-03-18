@@ -463,7 +463,6 @@ def samlcheck():
 @validate_blueprint.route('/triggerchallenge', methods=['POST', 'GET'])
 @validate_role_required
 @prepolicy(mangle, request=request)
-@check_user_or_serial_in_request(request)
 @event("validate_triggerchallenge", request, g)
 def trigger_challenge():
     """
@@ -543,8 +542,12 @@ def trigger_challenge():
     for key, value in request.all_data.items():
             if value and key not in ["g", "clientip"]:
                 options[key] = value
-
-    token_objs = get_tokens(serial=serial, user=user, active=True, revoked=False, locked=False)
+    if not serial and not user:
+        raise ParameterError("You need to specify a serial or a user.")
+    if serial and "*" in serial:
+        token_objs = get_tokens(serial_wildcard=serial, user=user, active=True, revoked=False, locked=False)
+    else:
+        token_objs = get_tokens(serial=serial, user=user, active=True, revoked=False, locked=False)
     # Only use the tokens, that are allowed to do challenge response
     chal_resp_tokens = [token_obj for token_obj in token_objs if "challenge" in token_obj.mode]
     create_challenges_from_tokens(chal_resp_tokens, details, options)
