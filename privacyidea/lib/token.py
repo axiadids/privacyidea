@@ -2013,9 +2013,10 @@ def create_challenges_from_tokens(token_list, reply_dict, options=None):
     reply_dict["multi_challenge"] = []
     transaction_id = None
     message_list = []
+    err_message_list = []
     for token_obj in token_list:
         # Check if the max auth is succeeded
-        if token_obj.check_all(message_list):
+        if token_obj.check_all(err_message_list):
             r_chal, message, transaction_id, attributes = \
                 token_obj.create_challenge(
                     transactionid=transaction_id, options=options)
@@ -2045,7 +2046,9 @@ def create_challenges_from_tokens(token_list, reply_dict, options=None):
                 reply_dict.update(challenge_info)
                 reply_dict["multi_challenge"].append(challenge_info)
     if message_list:
-        reply_dict["message"] = ", ".join(message_list)
+        reply_dict["message"] = ", ".join(set(message_list))
+    elif err_message_list:
+        reply_dict["message"] = ", ".join(set(err_message_list))
     # TODO: These two lines are deprecated: Add the information for the old administrative triggerchallenge
     reply_dict["messages"] = message_list
     reply_dict["transaction_ids"] = [chal.get("transaction_id") for chal in reply_dict.get("multi_challenge", [])]
