@@ -2239,6 +2239,8 @@ def check_token_list(tokenobject_list, passw, user=None, options=None):
                 tokenobject.challenge_janitor()
                 transaction_id = options.get("transaction_id") or \
                                  options.get("state")
+                if reply_dict.get("pending", False):
+                    del reply_dict["pending"]
                 break
             elif challenge_res > 0:
                 reply_dict["serial"] = tokenobject.token.serial
@@ -2258,6 +2260,8 @@ def check_token_list(tokenobject_list, passw, user=None, options=None):
 
                     # Reset the fail counter of the challenge response token
                     tokenobject.reset()
+                    if reply_dict.get("pending", False):
+                        del reply_dict["pending"]
                     # We have one successful authentication, so we bail out
                     break
                 else:  # pragma: no cover
@@ -2265,6 +2269,8 @@ def check_token_list(tokenobject_list, passw, user=None, options=None):
                     reply_dict["message"] = "Challenge matches, but token is inactive."
                     log.info("Received a valid response to a "
                              "challenge for inactive token {0!s}".format(tokenobject.token.serial))
+            elif challenge_res == -1:
+                reply_dict["pending"] = True
 
     elif challenge_request_token_list:
         # This is the initial REQUEST of a challenge response token
@@ -2274,6 +2280,7 @@ def check_token_list(tokenobject_list, passw, user=None, options=None):
             reply_dict["message"] = "No active challenge response token found"
         else:
             create_challenges_from_tokens(active_challenge_token, reply_dict, options)
+            reply_dict["pending"] = True
 
     elif pin_matching_token_list:
         # We did not find a valid token and no challenge.

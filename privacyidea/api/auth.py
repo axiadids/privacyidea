@@ -298,6 +298,9 @@ def get_auth_token():
                         "rights": rights},
                        secret)
 
+    if details and details.get("pending", False):
+        del details["pending"]
+
     # Add the role to the response, so that the WebUI can make decisions
     # based on this (only show selfservice, not the admin part)
     return send_result({"token": token,
