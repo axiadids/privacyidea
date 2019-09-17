@@ -2272,6 +2272,13 @@ def check_token_list(tokenobject_list, passw, user=None, options=None):
             elif challenge_res == -1:
                 reply_dict["pending"] = True
 
+        if not res:
+            # We did not find any successful response, so we need to increase the
+            # failcounters
+            for token_obj in challenge_response_token_list:
+                if not token_obj.is_outofband():
+                    token_obj.inc_failcount()
+
     elif challenge_request_token_list:
         # This is the initial REQUEST of a challenge response token
         active_challenge_token = [t for t in challenge_request_token_list
