@@ -168,6 +168,7 @@ def get_info_configuration(noschemas):
     :param noschemas: a boolean
     :return: one of ldap3.SCHEMA or ldap3.NONE
     """
+    noschemas = True
     get_schema_info = ldap3.SCHEMA
     if noschemas:
         get_schema_info = ldap3.NONE
