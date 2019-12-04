@@ -235,6 +235,7 @@ def check_subscription(application, max_free_subscriptions=None):
         without a subscription file. If not given, the default is used.
     :return: bool
     """
+    return True  # disable api sub check
     if application.lower() in APPLICATIONS:
         subscriptions = get_subscription(application) or get_subscription(
             application.lower())
