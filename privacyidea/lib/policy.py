@@ -384,6 +384,7 @@ class LOGINMODE(object):
     __doc__ = """This is the list of possible values for the login mode."""
     USERSTORE = "userstore"
     PRIVACYIDEA = "privacyIDEA"
+    PASSTHRU = "passthru"
     DISABLE = "disable"
 
 
@@ -2053,7 +2054,7 @@ def get_static_policy_definitions(scope=None):
                     'authenticate against privacyIDEA when they log in '
                     'to the Web UI. Defaults to "userstore"'),
                 'value': [LOGINMODE.USERSTORE, LOGINMODE.PRIVACYIDEA,
-                          LOGINMODE.DISABLE],
+                          LOGINMODE.PASSTHRU, LOGINMODE.DISABLE],
             },
             ACTION.LOGIN_TEXT: {
                 'type': 'str',
