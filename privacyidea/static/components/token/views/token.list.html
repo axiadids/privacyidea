@@ -134,7 +134,7 @@
                 {{ token.username }}</a>
             </td>
             <td ng-show="loggedInUser.role == 'admin'">
-                <a ui-sref="config.realms.list">{{ token.user_realm }}</a>
+                {{ token.user_realm }}
             </td>
 
             <td ng-show="loggedInUser.role == 'admin'">
@@ -148,7 +148,7 @@
             </td>
             <td ng-show="loggedInUser.role == 'admin' &&
             user_details_in_tokenlist">
-                <a ui-sref="config.resolvers.list">{{ token.resolver }}</a>
+                {{ token.resolver }}
             </td>
         </tr>
         </tbody>
