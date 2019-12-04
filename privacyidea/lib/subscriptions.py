@@ -99,6 +99,7 @@ def subscription_status():
 
     :return: subscription state
     """
+    return 0
     token_count = get_tokens(assigned=True, active=True, count=True)
     if token_count <= APPLICATIONS.get("privacyidea", 50):
         return 0
