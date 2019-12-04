@@ -66,17 +66,11 @@
             <td>{{ token.rollout_state }}</td>
             <td></td>
         </tr>
-        <tr token-data-edit text="{{'Maxfail' | translate }}"
-            button-text="{{ 'Set max fail'|translate}}"
-            token-data="{{ token.maxfail }}"
-            token-key="max_failcount"
-            token-locked="{{ token.locked }}"
-            hide-buttons="{{ hide_buttons }}"
-            set-right="{{ checkRight('set') }}"
-            input-pattern="[0-9]*"
-            callback-cancel="get()"
-            callback="set(key, value)"
-            logged-in-user="loggedInUser"></tr>
+        <tr>
+            <td translate>Max fail</td>
+            <td>{{ token.maxfail }}</td>
+            <td></td>
+        </tr>
         <tr>
             <td translate>Fail counter</td>
             <td><span class="label"
