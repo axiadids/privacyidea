@@ -563,6 +563,10 @@ def login_mode(wrapped_function, *args, **kwds):
                 # The original function should check against privacyidea!
                 kwds["check_otp"] = True
 
+            if list(login_mode_dict)[0] == LOGINMODE.PASSTHRU:
+                kwds["check_otp"] = True
+                kwds["passthru"] = True
+
             if list(login_mode_dict)[0] == LOGINMODE.DISABLE:
                 # The login to the webui is disabled
                 raise PolicyError("The login for this user is disabled.")
