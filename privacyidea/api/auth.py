@@ -309,7 +309,10 @@ def get_auth_token():
                                         details.get("loginmode"))})
 
     if not admin_auth and not user_auth:
-        raise AuthError(_("Authentication failure. Wrong credentials"),
+        message = "Wrong credentials"
+        if details and details.has_key("message") and details["message"] == "Challenge response failed":
+            message = details["message"]
+        raise AuthError(_("Authentication failure. {0!s}").format(message),
                         id=ERROR.AUTHENTICATE_WRONG_CREDENTIALS,
                         details=details or {})
     else:

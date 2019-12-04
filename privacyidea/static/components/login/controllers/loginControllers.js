@@ -72,6 +72,7 @@ angular.module("privacyideaApp")
         $scope.registrationAllowed = data.result.value;
     });
     $scope.welcomeStep = 0;
+    $scope.pollingTimeout = 300;
     // customization
     $scope.piCustomMenuFile = angular.element(document.querySelector('#CUSTOM_MENU')).val();
     $scope.piCustomBaselineFile = angular.element(document.querySelector('#CUSTOM_BASELINE')).val();
@@ -340,6 +341,16 @@ angular.module("privacyideaApp")
         }).then(function (response) {
             $scope.do_login_stuff(response.data);
             PollingAuthFactory.stop();
+        }).error(function (error) {
+            if ($scope.pollingTimeout > 0 && error.result.error.message.indexOf("Challenge response failed") == -1) {
+                $scope.pollingTimeout--;
+            } else {
+                PollingAuthFactory.stop();
+                $scope.transactionid = "";
+                inform.add(gettextCatalog.getString("Authentication failed. ")
+                    + error.result.error.message,
+                    {type: "danger", ttl: 10000});
+            }
         });
     };
 
