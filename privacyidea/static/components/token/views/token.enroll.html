@@ -154,10 +154,6 @@
          '/views/includes/token.enroll.post.bottom.html'"></div>
 
     <div class="text-center" ng-hide="click_wait || enrolledToken.rollout_state === 'clientwait'">
-        <button ng-click="enrolledToken = null"
-                ng-hide="$state.includes('token.wizard')"
-                class="btn btn-primary" translate>Enroll a new token
-        </button>
         <button ng-click="logout()"
                 ng-show="$state.includes('token.wizard')"
                 class="btn btn-primary" translate>Logout
