@@ -892,6 +892,7 @@ class PolicyClass(object):
         """
         from privacyidea.lib.token import get_dynamic_policy_definitions
         rights = set()
+        resolver = User(username, realm=realm).resolver
         if scope == SCOPE.ADMIN:
             # If the logged-in user is an admin, we match for username/adminrealm only
             match_username = username
@@ -908,6 +909,7 @@ class PolicyClass(object):
                                    user=match_username,
                                    user_object=user_object,
                                    adminrealm=adminrealm,
+                                   resolver=resolver,
                                    active=True,
                                    client=client)
         for pol in pols:
