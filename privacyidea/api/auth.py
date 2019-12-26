@@ -354,6 +354,17 @@ def user_required(f):
     return decorated_function
 
 
+def validate_role_required(f):
+    """
+    This is a decorator for routes, that require to be authenticated.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        check_auth_token(required_role=["validate", "admin"])
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 def check_auth_token(required_role=None):
     """
     This checks the authentication token

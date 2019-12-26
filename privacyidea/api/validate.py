@@ -97,7 +97,7 @@ from privacyidea.api.recover import recover_blueprint
 from privacyidea.lib.utils import get_client_ip
 from privacyidea.lib.event import event
 from privacyidea.lib.subscriptions import CheckSubscription
-from privacyidea.api.auth import admin_required
+from privacyidea.api.auth import validate_role_required
 from privacyidea.lib.policy import ACTION
 from privacyidea.lib.token import get_tokens
 from privacyidea.lib.machine import list_token_machines
@@ -445,9 +445,9 @@ def samlcheck():
 
 
 @validate_blueprint.route('/triggerchallenge', methods=['POST', 'GET'])
-@admin_required
+@validate_role_required
 @postpolicy(mangle_challenge_response, request=request)
-@prepolicy(check_base_action, request, action=ACTION.TRIGGERCHALLENGE)
+@prepolicy(mangle, request=request)
 @event("validate_triggerchallenge", request, g)
 def trigger_challenge():
     """
@@ -523,12 +523,10 @@ def trigger_challenge():
     options = {"g": g,
                "clientip": g.client_ip,
                "user": user}
-
     # Add all params to the options
     for key, value in request.all_data.items():
             if value and key not in ["g", "clientip"]:
                 options[key] = value
-
     if not serial and not user:
         raise ParameterError("You need to specify a serial or a user.")
     if serial and "*" in serial:
@@ -549,4 +547,3 @@ def trigger_challenge():
     })
 
     return send_result(result_obj, details=details)
-
