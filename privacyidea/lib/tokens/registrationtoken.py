@@ -159,7 +159,8 @@ class RegistrationTokenClass(PasswordTokenClass):
         Increase the counter, that counts successful authentications
         In case of successful authentication the token does needs to be deleted.
         """
-        self.delete_token()
+        if self.check_all([]):
+            self.delete_token()
         return 1
 
     @log_with(log)
