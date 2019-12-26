@@ -335,6 +335,7 @@ def check():
     else:
         result, details = check_user_pass(user, password, options=options)
 
+
     g.audit_object.log({"info": log_used_user(user, details.get("message")),
                         "success": result,
                         "serial": serial or details.get("serial"),
@@ -433,6 +434,7 @@ def samlcheck():
             # additional attributes
             for k, v in ui.items():
                 result_obj["attributes"][k] = v
+
 
     g.audit_object.log({"info": log_used_user(user, details.get("message")),
                         "success": auth,
