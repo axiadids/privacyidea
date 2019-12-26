@@ -104,6 +104,7 @@ from privacyidea.lib.subscriptions import CheckSubscription
 from privacyidea.api.auth import admin_required
 from privacyidea.api.auth import validate_role_required
 from privacyidea.api.auth import validate_role_required, admin_required
+from privacyidea.api.auth import validate_role_required
 from privacyidea.lib.policy import ACTION
 from privacyidea.lib.token import get_tokens
 from privacyidea.lib.machine import list_token_machines
@@ -462,9 +463,8 @@ def samlcheck():
 
 
 @validate_blueprint.route('/triggerchallenge', methods=['POST', 'GET'])
-@admin_required
+@validate_role_required
 @postpolicy(mangle_challenge_response, request=request)
-@prepolicy(check_base_action, request, action=ACTION.TRIGGERCHALLENGE)
 @prepolicy(webauthntoken_request, request=request)
 @prepolicy(webauthntoken_auth, request=request)
 @event("validate_triggerchallenge", request, g)
@@ -542,12 +542,10 @@ def trigger_challenge():
     options = {"g": g,
                "clientip": g.client_ip,
                "user": user}
-
     # Add all params to the options
     for key, value in request.all_data.items():
             if value and key not in ["g", "clientip"]:
                 options[key] = value
-
     if not serial and not user:
         raise ParameterError("You need to specify a serial or a user.")
     if serial and "*" in serial:
@@ -694,7 +692,7 @@ def create_multi_question_challenges_from_tokens(token_list, reply_dict, options
                         challenge_info["next_password_change"] = next_passw
                         challenge_info["password_change"] = token_obj.is_pin_change(password=True)
                     reply_dict.update(challenge_info)
-                    reply_dict["multi_challenge"].append(challenge_info)
+        reply_dict["multi_challenge"].append(challenge_info)
     if message_list:
         reply_dict["message"] = ", ".join(set(message_list))
     elif err_message_list:
