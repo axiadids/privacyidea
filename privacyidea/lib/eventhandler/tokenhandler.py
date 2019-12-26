@@ -46,7 +46,7 @@ from privacyidea.lib.token import (set_realms, remove_token, enable_token,
                                    unassign_token, init_token, set_description,
                                    set_count_window, add_tokeninfo,
                                    set_failcounter, delete_tokeninfo)
-from privacyidea.lib.utils import (parse_date, is_true,
+from privacyidea.lib.utils import (parse_date, is_true, parse_timedelta,
                                    parse_time_offset_from_now)
 from privacyidea.lib.tokenclass import DATE_FORMAT, AUTH_DATE_FORMAT
 from privacyidea.lib import _
@@ -338,12 +338,16 @@ class TokenEventHandler(BaseEventHandler):
                 elif action.lower() == ACTION_TYPE.SET_VALIDITY:
                     start_date = handler_options.get(VALIDITY.START)
                     end_date = handler_options.get(VALIDITY.END)
+                    validity_period_start = request.all_data.get('validity_period_start', None)
+                    validity_period_end = request.all_data.get('validity_period_end', None)
                     if start_date:
                          d = parse_date(start_date)
                          set_validity_period_start(serial, None,
                                                    d.strftime(DATE_FORMAT))
-                    if end_date:
+                    if end_date and not validity_period_end:
                         d = parse_date(end_date)
+                        if validity_period_start:
+                            d = parse_date(validity_period_start) + parse_timedelta(end_date)
                         set_validity_period_end(serial, None,
                                                 d.strftime(DATE_FORMAT))
                 elif action.lower() == ACTION_TYPE.SET_FAILCOUNTER:
