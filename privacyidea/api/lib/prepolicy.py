@@ -284,6 +284,15 @@ def check_otp_pin(request=None, action=None):
                        user=username, realm=realm, adminrealm=admin_realm,
                        client=g.client_ip, unique=True, audit_data=g.audit_object.audit_data)
 
+    pol_digit_delta = policy_object.get_policies(
+        action="{0!s}_{1!s}".format(tokentype, ACTION.OTPPINDIGITDELTA),
+        scope=scope, user=username, realm=realm, adminrealm=admin_realm,
+        client=g.client_ip, active=True) or \
+                 policy_object.get_policies(
+                     action=ACTION.OTPPINDIGITDELTA, scope=scope, user=username,
+                     realm=realm, adminrealm=admin_realm, client=g.client_ip,
+                     active=True)
+
     if len(pol_minlen) == 1 and len(pin) < int(list(pol_minlen)[0]):
         # check the minimum length requirement
         raise PolicyError("The minimum OTP PIN length is {0!s}".format(
@@ -299,6 +308,17 @@ def check_otp_pin(request=None, action=None):
         r, comment = check_pin_policy(pin, list(pol_contents)[0])
         if r is False:
             raise PolicyError(comment)
+
+    if pol_digit_delta and pin.isdigit() and len(pin) > 2:
+        pin_digits = [int(i) for i in pin]
+        delta = pin_digits[0] - pin_digits[1]
+        has_delta = False
+        for i in range(1, len(pin_digits) - 1):
+            if delta != (pin_digits[i] - pin_digits[i + 1]):
+                has_delta = True
+                break
+        if not has_delta:
+            raise PolicyError("PIN digits cannot have same deltas.")
 
     return True
 
