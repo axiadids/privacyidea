@@ -2224,6 +2224,8 @@ def check_token_list(tokenobject_list, passw, user=None, options=None, allow_res
                 tokenobject.challenge_janitor()
                 transaction_id = options.get("transaction_id") or \
                                  options.get("state")
+                if reply_dict.get("pending", False):
+                    del reply_dict["pending"]
                 break
             elif challenge_res > 0:
                 reply_dict["serial"] = tokenobject.token.serial
@@ -2251,8 +2253,12 @@ def check_token_list(tokenobject_list, passw, user=None, options=None, allow_res
 
                     # Reset the fail counter of the challenge response token
                     tokenobject.reset()
+                    if reply_dict.get("pending", False):
+                        del reply_dict["pending"]
                     # We have one successful authentication, so we bail out
                     break
+            elif challenge_res == -1:
+                reply_dict["pending"] = True
 
         if not res:
             # We did not find any successful response, so we need to increase the
@@ -2279,6 +2285,7 @@ def check_token_list(tokenobject_list, passw, user=None, options=None, allow_res
             for token_obj in challenge_request_token_list:
                 token_obj.check_reset_failcount()
             create_challenges_from_tokens(active_challenge_token, reply_dict, options)
+            reply_dict["pending"] = True
 
     elif pin_matching_token_list:
         # We did not find a valid token and no challenge.
