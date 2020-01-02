@@ -2288,22 +2288,26 @@ def check_token_list(tokenobject_list, passw, user=None, options=None, allow_res
             tokenobject.inc_failcount()
             if get_from_config(SYSCONF.RESET_FAILCOUNTER_ON_PIN_ONLY, False, return_bool=True):
                 tokenobject.check_reset_failcount()
-            reply_dict["message"] = "wrong otp value"
-            if len(pin_matching_token_list) == 1:
-                # If there is only one pin matching token, we look if it was
-                # a previous OTP value
-                token = pin_matching_token_list[0]
-                _r, pin, otp = token.split_pin_pass(passw)
-                if token.is_previous_otp(otp):
-                    reply_dict["message"] += ". previous otp used again"
-            if increase_auth_counters:
-                for token_obj in pin_matching_token_list:
-                    token_obj.inc_count_auth()
-            # write the serial numbers to the audit log
-            if len(pin_matching_token_list) == 1:
-                reply_dict["serial"] = pin_matching_token_list[0].token.serial
-                reply_dict["type"] = pin_matching_token_list[0].token.tokentype
-                reply_dict["otplen"] = pin_matching_token_list[0].token.otplen
+            message_list = []
+            if tokenobject.check_all(message_list):
+                reply_dict["message"] = "wrong otp value"
+                if len(pin_matching_token_list) == 1:
+                    # If there is only one pin matching token, we look if it was
+                    # a previous OTP value
+                    token = pin_matching_token_list[0]
+                    _r, pin, otp = token.split_pin_pass(passw)
+                    if token.is_previous_otp(otp):
+                        reply_dict["message"] += ". previous otp used again"
+                if increase_auth_counters:
+                    for token_obj in pin_matching_token_list:
+                        token_obj.inc_count_auth()
+                # write the serial numbers to the audit log
+                if len(pin_matching_token_list) == 1:
+                    reply_dict["serial"] = pin_matching_token_list[0].token.serial
+                    reply_dict["type"] = pin_matching_token_list[0].token.tokentype
+                    reply_dict["otplen"] = pin_matching_token_list[0].token.otplen
+            else:
+                reply_dict["message"] = ", ".join(message_list)
 
     elif invalid_token_list:
         # There were only tokens, that did not match the OTP value and
