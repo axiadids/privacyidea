@@ -335,8 +335,13 @@ def check():
     else:
         result, details = check_user_pass(user, password, options=options)
 
+    audit_result = result
+    if details and details.get("pending", False):
+        audit_result = -1
+        del details["pending"]
+
     g.audit_object.log({"info": log_used_user(user, details.get("message")),
-                        "success": result,
+                        "success": audit_result,
                         "serial": serial or details.get("serial"),
                         "token_type": details.get("type")})
     return send_result(result, details=details)
