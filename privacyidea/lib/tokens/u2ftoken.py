@@ -348,7 +348,6 @@ class U2fTokenClass(TokenClass):
             if not app_id:
                 raise TokenAdminError(_("You need to define the appId in the "
                                         "token config!"))
-
             nonce = url_encode(geturandom(32))
             response_detail = TokenClass.get_init_detail(self, params, user)
             register_request = {"version": U2F_Version,
