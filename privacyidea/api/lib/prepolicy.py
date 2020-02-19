@@ -283,7 +283,6 @@ def check_otp_pin(request=None, action=None):
                        action=ACTION.OTPPINCONTENTS, scope=scope,
                        user=username, realm=realm, adminrealm=admin_realm,
                        client=g.client_ip, unique=True, audit_data=g.audit_object.audit_data)
-
     if len(pol_minlen) == 1 and len(pin) < int(list(pol_minlen)[0]):
         # check the minimum length requirement
         raise PolicyError("The minimum OTP PIN length is {0!s}".format(
@@ -296,11 +295,27 @@ def check_otp_pin(request=None, action=None):
 
     if len(pol_contents) == 1:
         # check the contents requirement
-        r, comment = check_pin_policy(pin, list(pol_contents)[0])
+        list_pol_contents = list(pol_contents)[0]
+        if "d" in list_pol_contents:
+            check_pin_delta(pin)
+        r, comment = check_pin_policy(pin, list_pol_contents.strip("d"))
         if r is False:
             raise PolicyError(comment)
 
     return True
+
+
+def check_pin_delta(pin):
+    if pin.isdigit() and len(pin) > 2:
+        pin_digits = [int(i) for i in pin]
+        delta = pin_digits[0] - pin_digits[1]
+        has_delta = False
+        for i in range(1, len(pin_digits) - 1):
+            if delta != (pin_digits[i] - pin_digits[i + 1]):
+                has_delta = True
+                break
+        if not has_delta:
+            raise PolicyError("PIN digits cannot have same deltas.")
 
 
 def sms_identifiers(request=None, action=None):
