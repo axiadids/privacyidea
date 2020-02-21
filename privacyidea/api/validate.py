@@ -439,7 +439,6 @@ def samlcheck():
             for k, v in ui.items():
                 result_obj["attributes"][k] = v
 
-
     g.audit_object.log({"info": log_used_user(user, details.get("message")),
                         "success": auth,
                         "serial": details.get("serial"),
