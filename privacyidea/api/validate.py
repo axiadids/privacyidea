@@ -98,6 +98,7 @@ from privacyidea.lib.utils import get_client_ip
 from privacyidea.lib.event import event
 from privacyidea.lib.subscriptions import CheckSubscription
 from privacyidea.api.auth import validate_role_required
+from privacyidea.api.auth import validate_role_required, admin_required
 from privacyidea.lib.policy import ACTION
 from privacyidea.lib.token import get_tokens
 from privacyidea.lib.machine import list_token_machines
@@ -552,3 +553,78 @@ def trigger_challenge():
     })
 
     return send_result(result_obj, details=details)
+
+
+@validate_blueprint.route('/triggerquestionchallenge', methods=['POST', 'GET'])
+@admin_required
+@postpolicy(mangle_challenge_response, request=request)
+@check_user_or_serial_in_request(request)
+@prepolicy(check_base_action, request, action=ACTION.TRIGGERCHALLENGE)
+@event("validate_triggerchallenge", request, g)
+def trigger_question_challenge():
+    user = request.User
+    serial = getParam(request.all_data, "serial")
+    details = {"messages": [],
+               "transaction_ids": []}
+    options = {"g": g,
+               "clientip": g.client_ip,
+               "user": user}
+
+    token_objs = get_tokens(serial=serial, user=user, active=True, revoked=False, locked=False)
+    # Only use the tokens, that are allowed to do challenge response
+    chal_resp_tokens = [token_obj for token_obj in token_objs if "challenge" in token_obj.mode]
+    create_multi_question_challenges_from_tokens(chal_resp_tokens, details, options)
+    result_obj = len(details.get("multi_challenge"))
+
+    g.audit_object.log({
+        "user": user.login,
+        "resolver": user.resolver,
+        "realm": user.realm,
+        "success": result_obj > 0,
+        "info": log_used_user(user, "triggered {0!s} challenges".format(result_obj))
+    })
+
+    return send_result(result_obj, details=details)
+
+
+def create_multi_question_challenges_from_tokens(token_list, reply_dict, options=None):
+    from privacyidea.lib.tokens.questionnairetoken import QuestionnaireTokenClass
+
+    options = options or {}
+    reply_dict["multi_challenge"] = []
+    transaction_id = None
+    message_list = []
+    err_message_list = []
+    for token_obj in token_list:
+        if token_obj.get_tokentype() != QuestionnaireTokenClass.get_class_type():
+            continue
+        if token_obj.check_all(err_message_list):
+            r_chal, challenges = token_obj.create_all_challenges(transactionid=transaction_id, options=options)
+            for challenge in challenges:
+                # Add the reply to the response
+                message_list.append(challenge['message'])
+                if r_chal:
+                    challenge_info = {}
+                    challenge_info["transaction_id"] = challenge['transaction_id']
+                    challenge_info["attributes"] = challenge['attributes']
+                    challenge_info["serial"] = token_obj.token.serial
+                    challenge_info["type"] = token_obj.get_tokentype()
+                    challenge_info["message"] = challenge['message']
+                    # If exist, add next pin and next password change
+                    next_pin = token_obj.get_tokeninfo("next_pin_change")
+                    if next_pin:
+                        challenge_info["next_pin_change"] = next_pin
+                        challenge_info["pin_change"] = token_obj.is_pin_change()
+                    next_passw = token_obj.get_tokeninfo("next_password_change")
+                    if next_passw:
+                        challenge_info["next_password_change"] = next_passw
+                        challenge_info["password_change"] = token_obj.is_pin_change(password=True)
+                    reply_dict.update(challenge_info)
+                    reply_dict["multi_challenge"].append(challenge_info)
+    if message_list:
+        reply_dict["message"] = ", ".join(set(message_list))
+    elif err_message_list:
+        reply_dict["message"] = ", ".join(set(err_message_list))
+    # TODO: These two lines are deprecated: Add the information for the old administrative triggerchallenge
+    reply_dict["messages"] = message_list
+    reply_dict["transaction_ids"] = [chal.get("transaction_id") for chal in reply_dict.get("multi_challenge", [])]

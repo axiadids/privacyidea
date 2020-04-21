@@ -132,9 +132,17 @@ class QuestionnaireTokenClass(TokenClass):
             questions = j_questions
         num_answers = get_from_config("question.num_answers",
                                       DEFAULT_NUM_ANSWERS)
+
         if len(questions) < int(num_answers):
-            raise TokenAdminError(_("You need to provide at least %s "
-                                    "answers.") % num_answers)
+            tinfo = self.get_tokeninfo()
+            existing_question_count = 0
+            for question, answer in tinfo.items():
+                if question.endswith(".type") and answer == "password":
+                    existing_question_count += 1
+            if existing_question_count < int(num_answers):
+                raise TokenAdminError(_("You need to provide at least %s "
+                                        "answers.") % num_answers)
+
         # Save all questions and answers and encrypt them
         for question, answer in questions.items():
             self.add_tokeninfo(question, answer, value_type="password")
@@ -193,7 +201,7 @@ class QuestionnaireTokenClass(TokenClass):
                 # This is "Question1?.type" of type "password"
                 # So this is actually a question and we add the question to
                 # the list
-                questions.append(question.replace('.type', '').strip())
+                questions.append(question[:-5])
         message = random.choice(questions)
         attributes = None
 
@@ -211,6 +219,38 @@ class QuestionnaireTokenClass(TokenClass):
         db_challenge.save()
         self.challenge_janitor()
         return True, message, db_challenge.transaction_id, attributes
+
+
+    def create_all_challenges(self, transactionid=None, options=None):
+        options = options or {}
+
+        # Get random questions
+        challenges = []
+        questions = []
+        tinfo = self.get_tokeninfo()
+        for question, answer in tinfo.items():
+            if question.endswith(".type") and answer == "password":
+                questions.append(question[:-5])
+
+        min_validate = int(get_from_config("question.min_validate", 1))
+        random_questions = random.sample(questions, k=min_validate)
+        attributes = None
+        tokentype = self.get_tokentype().lower()
+        validity = int(get_from_config('DefaultChallengeValidityTime', 120))
+        lookup_for = tokentype.capitalize() + 'ChallengeValidityTime'
+        validity = int(get_from_config(lookup_for, validity))
+        for message in random_questions:
+                db_challenge = Challenge(self.token.serial,
+                                        transaction_id=transactionid,
+                                        challenge=message,
+                                        validitytime=validity)
+                db_challenge.save()
+                challenges.append({'message': message,
+                                   'transaction_id': db_challenge.transaction_id,
+                                   'attributes': attributes})
+        self.challenge_janitor()
+        return True, challenges
+
 
     def check_answer(self, given_answer, challenge_object):
         """

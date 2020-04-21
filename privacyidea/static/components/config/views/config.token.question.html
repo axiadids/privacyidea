@@ -19,6 +19,30 @@
            ng-model="form['question.num_answers']" name="questionAnswers">
 </div>
 
+<div class="form-group">
+  <label for="maxQuestionAnswers" translate>Maximum number of answers</label>
+  <p class="help-block" translate>
+      If there are no predefined questions, this is the maximum number of answers a user can define to enroll a token.
+  </p>
+  <input type="text"
+         required
+         class="form-control"
+         placeholder="0"
+         ng-model="form['question.max_num_answers']" name="maxQuestionAnswers">
+</div>
+
+<div class="form-group">
+  <label for="questionMinValidate" translate>Minimum questions to validate</label>
+  <p class="help-block" translate>
+      This is the number of questions a user needs to answer to validate.
+  </p>
+  <input type="text"
+         required
+         class="form-control"
+         placeholder="5"
+         ng-model="form['question.min_validate']" name="questionMinValidate">
+</div>
+
 <h3 translate>Questionnaire</h3>
 <p class="help-block" translate>
     These are the possible questions, a user may define answers to.
