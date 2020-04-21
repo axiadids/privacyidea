@@ -2270,10 +2270,6 @@ def check_token_list(tokenobject_list, passw, user=None, options=None, allow_res
                 if len(challenge_response_token_list) == 1:
                     reply_dict["serial"] = challenge_response_token_list[0].token.serial
                     reply_dict["type"] = challenge_response_token_list[0].token.tokentype
-                    reply_dict["message"] = "Response did not match the challenge."
-                else:
-                    reply_dict["message"] = "Response did not match for " \
-                                            "{0!s} tokens.".format(len(challenge_response_token_list))
 
     elif challenge_request_token_list:
         # This is the initial REQUEST of a challenge response token
