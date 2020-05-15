@@ -2222,8 +2222,15 @@ def check_token_list(tokenobject_list, passw, user=None, options=None, allow_res
         # found.
         matching_challenge = False
         for tokenobject in challenge_response_token_list:
-            if tokenobject.check_challenge_response(passw=passw,
-                                                    options=options) >= 0:
+            challenge_res = tokenobject.check_challenge_response(passw=passw,
+                                                    options=options)
+            if challenge_res == 0:
+                reply_dict["message"] = "Challenge response failed"
+                tokenobject.challenge_janitor()
+                transaction_id = options.get("transaction_id") or \
+                                 options.get("state")
+                break
+            elif challenge_res > 0:
                 reply_dict["serial"] = tokenobject.token.serial
                 matching_challenge = True
                 messages = []
@@ -2262,10 +2269,6 @@ def check_token_list(tokenobject_list, passw, user=None, options=None, allow_res
                 if len(challenge_response_token_list) == 1:
                     reply_dict["serial"] = challenge_response_token_list[0].token.serial
                     reply_dict["type"] = challenge_response_token_list[0].token.tokentype
-                    reply_dict["message"] = "Response did not match the challenge."
-                else:
-                    reply_dict["message"] = "Response did not match for " \
-                                            "{0!s} tokens.".format(len(challenge_response_token_list))
 
     elif challenge_request_token_list:
         # This is the initial REQUEST of a challenge response token
