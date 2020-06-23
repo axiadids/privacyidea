@@ -237,10 +237,11 @@ class TokenClass(object):
                 if not self.user or not self.user.login:
                     # The token is assigned, but the username does not resolve
                     orphaned = True
-            except Exception:
+            except Exception as e:
                 # If any other resolving error occurs, we also assume the
                 # token to be orphaned
-                orphaned = True
+                log.error("orphaned check error: {0!r}".format(e))
+                orphaned = False
         return orphaned
 
     def get_user_displayname(self):
