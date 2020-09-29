@@ -30,6 +30,7 @@ from privacyidea.lib import queue
 import privacyidea.api.before_after
 from privacyidea.api.validate import validate_blueprint
 from privacyidea.api.token import token_blueprint
+from privacyidea.api.search import search_blueprint
 from privacyidea.api.system import system_blueprint
 from privacyidea.api.resolver import resolver_blueprint
 from privacyidea.api.realm import realm_blueprint
@@ -141,6 +142,7 @@ def create_app(config_name="development",
 
     app.register_blueprint(validate_blueprint, url_prefix='/validate')
     app.register_blueprint(token_blueprint, url_prefix='/token')
+    app.register_blueprint(search_blueprint, url_prefix='/search')
     app.register_blueprint(system_blueprint, url_prefix='/system')
     app.register_blueprint(resolver_blueprint, url_prefix='/resolver')
     app.register_blueprint(realm_blueprint, url_prefix='/realm')

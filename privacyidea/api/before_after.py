@@ -54,6 +54,7 @@ from .machine import machine_blueprint
 from .application import application_blueprint
 from .caconnector import caconnector_blueprint
 from .token import token_blueprint
+from .search import search_blueprint
 from .system import system_blueprint
 from .smtpserver import smtpserver_blueprint
 from .radiusserver import radiusserver_blueprint
@@ -80,17 +81,20 @@ log = logging.getLogger(__name__)
 # at the application, so it's sufficient to call them only for one blueprint.
 # The decorated functions are called before and after *every* request.
 @token_blueprint.before_app_request
+@search_blueprint.before_app_request
 def log_begin_request():
     log.debug(u"Begin handling of request {!r}".format(request.full_path))
 
 
 @token_blueprint.teardown_app_request
+@search_blueprint.teardown_app_request
 def teardown_request(exc):
     call_finalizers()
     log.debug(u"End handling of request {!r}".format(request.full_path))
 
 
 @token_blueprint.before_request
+@search_blueprint.before_request
 @audit_blueprint.before_request
 @user_blueprint.before_request
 @system_blueprint.before_request
@@ -207,6 +211,7 @@ def before_request():
 @policy_blueprint.after_request
 @user_blueprint.after_request
 @token_blueprint.after_request
+@search_blueprint.after_request
 @audit_blueprint.after_request
 @application_blueprint.after_request
 @machine_blueprint.after_request
@@ -248,6 +253,7 @@ def after_request(response):
 @policy_blueprint.app_errorhandler(AuthError)
 @user_blueprint.app_errorhandler(AuthError)
 @token_blueprint.app_errorhandler(AuthError)
+@search_blueprint.app_errorhandler(AuthError)
 @audit_blueprint.app_errorhandler(AuthError)
 @application_blueprint.app_errorhandler(AuthError)
 @smtpserver_blueprint.app_errorhandler(AuthError)
@@ -281,6 +287,7 @@ def auth_error(error):
 @policy_blueprint.app_errorhandler(PolicyError)
 @user_blueprint.app_errorhandler(PolicyError)
 @token_blueprint.app_errorhandler(PolicyError)
+@search_blueprint.app_errorhandler(PolicyError)
 @audit_blueprint.app_errorhandler(PolicyError)
 @application_blueprint.app_errorhandler(PolicyError)
 @smtpserver_blueprint.app_errorhandler(PolicyError)
@@ -330,6 +337,7 @@ def resource_not_found_error(error):
 @policy_blueprint.app_errorhandler(privacyIDEAError)
 @user_blueprint.app_errorhandler(privacyIDEAError)
 @token_blueprint.app_errorhandler(privacyIDEAError)
+@search_blueprint.app_errorhandler(privacyIDEAError)
 @audit_blueprint.app_errorhandler(privacyIDEAError)
 @application_blueprint.app_errorhandler(privacyIDEAError)
 @smtpserver_blueprint.app_errorhandler(privacyIDEAError)
@@ -358,6 +366,7 @@ def privacyidea_error(error):
 @policy_blueprint.app_errorhandler(500)
 @user_blueprint.app_errorhandler(500)
 @token_blueprint.app_errorhandler(500)
+@search_blueprint.app_errorhandler(500)
 @audit_blueprint.app_errorhandler(500)
 @application_blueprint.app_errorhandler(500)
 @smtpserver_blueprint.app_errorhandler(500)
