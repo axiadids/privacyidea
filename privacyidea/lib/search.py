@@ -120,6 +120,7 @@ def search_create_token_query(tokentype=None, realm=None, assigned=None, user=No
         serial_conditions.append(Token.serial.like(serial_wildcard.replace("*", "%")))
 
     if deviceSerial is not None and deviceSerial.strip("*"):
+        serial_conditions.append(Token.serial.like(deviceSerial.replace("*", "%")))
         serial_conditions.append(DEVICE_SERIAL_TABLE.Value.like(deviceSerial.replace("*", "%")))
 
     sql_query = sql_query.filter(or_(*serial_conditions))
@@ -236,6 +237,7 @@ def get_col_order(sortby=None, sortdir=None):
 def is_valid_filter(name=None, operation=None):
     allowed_filters = [
         "serial",
+        "deviceSerial",
         "deviceType",
         "active",
         "revoked",
@@ -275,7 +277,9 @@ def get_query_search_value(name=None, value=None, operation=None):
 
     if operation == "contains":
         value = "*" + value + "*"
-    elif operation == "startsWith":
+    elif operation == "startswith":
+        value = value + "*"
+    elif operation == "endswith":
         value = "*" + value
     
     return value
@@ -312,7 +316,7 @@ def get_search_groups_paginate_no_ldap(searchRequestDetails=None):
             revoked=filters.get("revoked"),
             locked=filters.get("locked"),
             deviceType=filters.get("deviceType"),
-            deviceSerial=filters.get("serial"),
+            deviceSerial=filters.get("deviceSerial"),
             validity_period_end_from=filters.get("validity_period_end_from"),
             validity_period_end_to=filters.get("validity_period_end_to"),
             validity_period_start_from=filters.get("validity_period_start_from"),
