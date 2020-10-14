@@ -72,7 +72,7 @@ def search_create_token_query(tokentype=None, realm=None, assigned=None, user=No
                         validity_period_start_from=None, validity_period_start_to=None):
     
     # default PI query builder
-    sql_query = _create_token_query(tokentype=tokentype, realm=realm,
+    sql_query = _create_token_query(realm=realm,
                                 assigned=assigned, user=user,
                                 active=active, revoked=revoked, locked=locked,
                                 resolver=resolver,
@@ -98,9 +98,6 @@ def search_create_token_query(tokentype=None, realm=None, assigned=None, user=No
     if userid is not None and userid.strip("*"):
         sql_query = sql_query.filter(USER_ID_TABLE.user_id.like(userid.replace("*", "%")))
 
-    if deviceType is not None and deviceType.strip("*"):
-        sql_query = sql_query.filter(DEVICE_TYPE_TABLE.Value.like(deviceType.replace("*", "%")))
-
     if validity_period_end_from is not None:
         sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_END_TABLE.Value) >= func.date(validity_period_end_from))
     if validity_period_end_to is not None:
@@ -124,6 +121,17 @@ def search_create_token_query(tokentype=None, realm=None, assigned=None, user=No
         serial_conditions.append(DEVICE_SERIAL_TABLE.Value.like(deviceSerial.replace("*", "%")))
 
     sql_query = sql_query.filter(or_(*serial_conditions))
+
+    ## handle deviceType or token type match together
+    type_conditions = []
+
+    if deviceType is not None and deviceType.strip("*"):
+        type_conditions.append(DEVICE_TYPE_TABLE.Value.like(deviceType.replace("*", "%")))
+
+    if tokentype is not None and tokentype.strip("*"):
+        type_conditions.append(Token.tokentype.like(tokentype.lower().replace("*", "%")))
+
+    sql_query = sql_query.filter(or_(*type_conditions))
 
     return sql_query
 
