@@ -71,20 +71,11 @@ def search_add_token_filter(sql_query=None, search_filter=None):
         return sql_query
 
     if name == "active":
-        if value is True:
-            sql_query = sql_query.filter(Token.active == True)
-        else:
-            sql_query = sql_query.filter(Token.active == False)
+        sql_query = sql_query.filter(Token.active == (value is True))
     elif name == "revoked":
-        if value is True:
-            sql_query = sql_query.filter(Token.revoked == True)
-        else:
-            sql_query = sql_query.filter(Token.revoked == False)
+        sql_query = sql_query.filter(Token.revoked == (value is True))
     elif name == "locked":
-        if value is True:
-            sql_query = sql_query.filter(Token.locked == True)
-        else:
-            sql_query = sql_query.filter(Token.locked == False)
+        sql_query = sql_query.filter(Token.locked == (value is True))
     elif name == "userid":
         if value.strip("*"):
             sql_query = sql_query.filter(USER_ID_TABLE.user_id.like(value.replace("*", "%")))
