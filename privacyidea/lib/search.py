@@ -63,22 +63,47 @@ USER_ID_COL = USER_ID_TABLE.user_id
 COALESCED_SERIAL_COL = func.coalesce(DEVICE_SERIAL_TABLE.Value, Token.serial)
 COALESCED_TYPE_COL = func.coalesce(DEVICE_TYPE_TABLE.Value, Token.tokentype)
 
-def search_create_token_query(tokentype=None, realm=None, assigned=None, user=None,
-                        serial_exact=None, serial_wildcard=None, active=None, resolver=None,
-                        rollout_state=None, description=None, revoked=None,
-                        locked=None, userid=None, tokeninfo=None, maxfail=None, allowed_realms=None,
-                        deviceType=None, deviceSerial=None,
-                        validity_period_end_from=None, validity_period_end_to=None,
-                        validity_period_start_from=None, validity_period_start_to=None):
-    
-    # default PI query builder
-    sql_query = _create_token_query(realm=realm,
-                                assigned=assigned, user=user,
-                                active=active, revoked=revoked, locked=locked,
-                                resolver=resolver,
-                                rollout_state=rollout_state,
-                                description=description,
-                                allowed_realms=allowed_realms)
+def search_add_token_filter(sql_query=None, search_filter=None):
+    name = search_filter.get("name", None)
+    value = search_filter.get("value", None)
+
+    if not sql_query or not name:
+        return sql_query
+
+    if name == "active":
+        sql_query = sql_query.filter(Token.active == (value is True))
+    elif name == "revoked":
+        sql_query = sql_query.filter(Token.revoked == (value is True))
+    elif name == "locked":
+        sql_query = sql_query.filter(Token.locked == (value is True))
+    elif name == "userid":
+        if value.strip("*"):
+            sql_query = sql_query.filter(USER_ID_TABLE.user_id.like(value.replace("*", "%")))
+    elif name == "validity_period_end_from":
+        sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_END_TABLE.Value) >= func.date(value))
+    elif name == "validity_period_end_to":
+        sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_END_TABLE.Value) <= func.date(value))
+    elif name == "validity_period_start_from":
+        sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_START_TABLE.Value) >= func.date(value))
+    elif name == "validity_period_start_to":
+        sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_START_TABLE.Value) <= func.date(value))
+    elif name == "serial":
+        if value.strip("*"):
+            sql_query = sql_query.filter(Token.serial.like(value.replace("*", "%")))
+    elif name == "deviceSerial":
+        if value.strip("*"):
+            sql_query = sql_query.filter(or_(Token.serial.like(value.replace("*", "%")), DEVICE_SERIAL_TABLE.Value.like(value.replace("*", "%"))))
+    elif name == "deviceType":
+        if value.strip("*"):
+            sql_query = sql_query.filter(DEVICE_TYPE_TABLE.Value.like(value.replace("*", "%")))
+    elif name == "tokentype":
+        if value.strip("*"):
+            sql_query = sql_query.filter(or_(Token.tokentype.like(value.lower().replace("*", "%")), DEVICE_TYPE_TABLE.Value.like(value.replace("*", "%"))))
+
+    return sql_query
+            
+def search_create_token_query(filters=None):
+    sql_query = Token.query
 
     # to sort by token info columns
     sql_query = sql_query.outerjoin(DEVICE_TYPE_TABLE, and_(DEVICE_TYPE_TABLE.token_id == Token.id, DEVICE_TYPE_TABLE.Key == "deviceType"))
@@ -95,45 +120,11 @@ def search_create_token_query(tokentype=None, realm=None, assigned=None, user=No
     sql_query = sql_query.add_column(COALESCED_TYPE_COL)
     sql_query = sql_query.add_column(USER_ID_COL)
 
-    if userid is not None and userid.strip("*"):
-        sql_query = sql_query.filter(USER_ID_TABLE.user_id.like(userid.replace("*", "%")))
-
-    if validity_period_end_from is not None:
-        sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_END_TABLE.Value) >= func.date(validity_period_end_from))
-    if validity_period_end_to is not None:
-        sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_END_TABLE.Value) <= func.date(validity_period_end_to))
-    
-    if validity_period_start_from is not None:
-        sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_START_TABLE.Value) >= func.date(validity_period_start_from))
-    if validity_period_start_to is not None:
-        sql_query = sql_query.filter(func.date(VALIDITY_PERIOD_START_TABLE.Value) <= func.date(validity_period_start_to))
-
-    ## handle deviceSerial or token serial match together
-    serial_conditions = []
-
-    if serial_wildcard is not None and serial_wildcard.strip("*"):
-        # filter for serial
-        # match with "like"
-        serial_conditions.append(Token.serial.like(serial_wildcard.replace("*", "%")))
-
-    if deviceSerial is not None and deviceSerial.strip("*"):
-        serial_conditions.append(Token.serial.like(deviceSerial.replace("*", "%")))
-        serial_conditions.append(DEVICE_SERIAL_TABLE.Value.like(deviceSerial.replace("*", "%")))
-
-    sql_query = sql_query.filter(or_(*serial_conditions))
-
-    ## handle deviceType or token type match together
-    type_conditions = []
-
-    if deviceType is not None and deviceType.strip("*"):
-        type_conditions.append(DEVICE_TYPE_TABLE.Value.like(deviceType.replace("*", "%")))
-
-    if tokentype is not None and tokentype.strip("*"):
-        type_conditions.append(Token.tokentype.like(tokentype.lower().replace("*", "%")))
-
-    sql_query = sql_query.filter(or_(*type_conditions))
+    for f in filters:
+        sql_query = search_add_token_filter(sql_query, f)
 
     return sql_query
+
 
 @log_with(log)
 def get_tokens_paginate_no_ldap(tokentype=None, realm=None, assigned=None, user=None,
@@ -297,7 +288,7 @@ def get_search_groups_paginate_no_ldap(searchRequestDetails=None):
     union_queries = None
 
     for search_group in searchRequestDetails["searchGroups"]:
-        filters = {}
+        filters = []
         for search_filter in search_group["filters"]:
             queryOperation = search_filter.get("operation", "equals")
             
@@ -311,25 +302,13 @@ def get_search_groups_paginate_no_ldap(searchRequestDetails=None):
                 continue
             queryValue = get_query_search_value(queryName, queryValue, queryOperation)
 
-            filters[queryName] = queryValue
+            filters.append({"name": queryName, "value": queryValue})
 
         if not filters:
             continue
 
-        sql_query = search_create_token_query(
-            tokentype=filters.get("tokentype"),
-            userid=filters.get("userid"),
-            serial_wildcard=filters.get("serial"),
-            active=filters.get("active"),
-            revoked=filters.get("revoked"),
-            locked=filters.get("locked"),
-            deviceType=filters.get("deviceType"),
-            deviceSerial=filters.get("deviceSerial"),
-            validity_period_end_from=filters.get("validity_period_end_from"),
-            validity_period_end_to=filters.get("validity_period_end_to"),
-            validity_period_start_from=filters.get("validity_period_start_from"),
-            validity_period_start_to=filters.get("validity_period_start_to")
-        )
+        sql_query = search_create_token_query(filters)
+
         if union_queries:
             union_queries = union_queries.union(sql_query)
             continue
