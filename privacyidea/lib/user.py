@@ -204,8 +204,11 @@ class User(object):
         resolvers = []
         for resolvername in self.get_ordererd_resolvers():
             # test, if the user is contained in this resolver
-            if self._locate_user_in_resolver(resolvername):
-                break
+            try:
+                if self._locate_user_in_resolver(resolvername):
+                    break
+            except Exception as e:
+                log.error("Failed to connect to resolver {0!r}: {1!r}".format(resolvername, e))
         if self.resolver:
             resolvers = [self.resolver]
         return resolvers
